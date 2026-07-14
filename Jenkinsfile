@@ -26,9 +26,9 @@ pipeline {
             steps {
                 echo 'Desplegando aplicación...'
 
-                bat '''
-                if not exist C:\\deploy mkdir C:\\deploy
-                xcopy /E /Y * C:\\deploy\\
+                sh '''
+                    mkdir -p /deploy
+                    cp -r . /deploy/
                 '''
             }
         }
@@ -36,11 +36,15 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline ejecutado correctamente'
+            echo 'Pipeline ejecutado correctamente.'
         }
 
         failure {
-            echo 'Hubo un error en el pipeline'
+            echo 'Hubo un error en el pipeline.'
+        }
+
+        always {
+            echo 'Fin de la ejecución.'
         }
     }
 }
