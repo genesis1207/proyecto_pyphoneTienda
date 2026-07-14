@@ -5,14 +5,14 @@ pipeline {
 
         stage('Clonar repositorio') {
             steps {
-                echo 'Clonando repositorio...'
                 checkout scm
+                echo 'Repositorio clonado correctamente.'
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Construyendo el proyecto...'
+                echo 'Construyendo proyecto...'
             }
         }
 
@@ -27,8 +27,7 @@ pipeline {
                 echo 'Desplegando aplicación...'
 
                 sh '''
-                    mkdir -p /deploy
-                    cp -r . /deploy/
+                    cp -r * /deploy/
                 '''
             }
         }
@@ -40,11 +39,11 @@ pipeline {
         }
 
         failure {
-            echo 'Hubo un error en el pipeline.'
+            echo 'Hubo un error durante la ejecución.'
         }
 
         always {
-            echo 'Fin de la ejecución.'
+            echo 'Fin del Pipeline.'
         }
     }
 }
