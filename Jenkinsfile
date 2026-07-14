@@ -2,31 +2,33 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+
+        stage('Clonar repositorio') {
             steps {
+                echo 'Clonando repositorio...'
                 checkout scm
             }
         }
 
-        stage('Validar archivos') {
+        stage('Build') {
             steps {
-                sh '''
-                    echo "Validando estructura del proyecto..."
-                    test -f index.html
-                    test -f checkout.html
-                    test -f response.html
-                    echo "OK: archivos principales presentes"
-                '''
+                echo 'Construyendo el proyecto...'
             }
         }
 
-        stage('Desplegar') {
+        stage('Test') {
             steps {
-                sh '''
-                    echo "Copiando archivos al servidor de producción (Nginx)..."
-                    rm -rf /deploy/*
-                    cp -r ./* /deploy/
-                    echo "Despliegue completado en /deploy"
+                echo 'Ejecutando pruebas...'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Desplegando aplicación...'
+
+                bat '''
+                if not exist C:\\deploy mkdir C:\\deploy
+                xcopy /E /Y * C:\\deploy\\
                 '''
             }
         }
@@ -34,10 +36,11 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline ejecutado con éxito. PayphonePractica desplegada en producción.'
+            echo 'Pipeline ejecutado correctamente'
         }
+
         failure {
-            echo '❌ El pipeline falló. Revisa los logs arriba.'
+            echo 'Hubo un error en el pipeline'
         }
     }
 }
