@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda Thiago – Tienda</title>
+  <style>
+    :root {
+      --ink:     #0d1b2a;
+      --blue:    #1a56db;
+      --blue-dk: #0d3b8c;
+      --blue-lt: #e8f0fe;
+      --accent:  #f59e0b;
+      --green:   #059669;
+      --red:     #dc2626;
+      --gray:    #6b7280;
+      --bg:      #f8fafc;
+      --card:    #ffffff;
+      --border:  #e2e8f0;
+      --radius:  14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 200;
+      background: var(--blue-dk);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; height: 60px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    }
+    .logo { color: #fff; font-size: 1.25rem; font-weight: 800; letter-spacing: -.5px; }
+    .logo em { color: var(--accent); font-style: normal; }
+    .cart-btn {
+      position: relative; background: var(--accent); border: none;
+      color: var(--ink); border-radius: 10px;
+      padding: 8px 18px; font-weight: 700; font-size: .9rem;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .cart-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,.4); }
+    .cart-count {
+      position: absolute; top: -8px; right: -8px;
+      background: var(--red); color: #fff; border-radius: 50%;
+      width: 20px; height: 20px; font-size: .7rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: scale(0); transition: .2s;
+    }
+    .cart-count.show { opacity: 1; transform: scale(1); }
+
+    /* ── HERO BANNER ── */
+    .hero {
+      background: linear-gradient(135deg, var(--blue-dk) 0%, #1e3a8a 50%, #1d4ed8 100%);
+      padding: 52px 28px 44px; text-align: center; color: #fff;
+    }
+    .hero h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; letter-spacing: -.5px; }
+    .hero p  { margin-top: 10px; color: #bfdbfe; font-size: 1rem; }
+    .hero-badges { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+    .hero-badge {
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25);
+      border-radius: 20px; padding: 5px 14px; font-size: .8rem; color: #e0eaff;
+    }
+
+    /* ── FILTROS ── */
+    .filters { display: flex; gap: 8px; padding: 22px 28px 0; flex-wrap: wrap; }
+    .filter-btn {
+      border: 1.5px solid var(--border); background: var(--card);
+      border-radius: 20px; padding: 6px 16px; font-size: .84rem;
+      cursor: pointer; color: var(--gray); transition: .15s; font-weight: 500;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      border-color: var(--blue); background: var(--blue-lt); color: var(--blue); font-weight: 600;
+    }
+
+    /* ── GRID DE PRODUCTOS ── */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px; padding: 20px 28px 60px;
+    }
+    .product-card {
+      background: var(--card); border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      overflow: hidden; display: flex; flex-direction: column;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+    }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,.1); border-color: #bfdbfe; }
+    .product-card.hidden { display: none; }
+
+    .prod-img {
+      height: 150px; display: flex; align-items: center; justify-content: center;
+      font-size: 4rem; background: var(--blue-lt);
+    }
+    .prod-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .prod-cat  { font-size: .7rem; font-weight: 700; text-transform: uppercase;
+                 letter-spacing: .8px; color: var(--blue); margin-bottom: 4px; }
+    .prod-name { font-size: .95rem; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+    .prod-desc { font-size: .78rem; color: var(--gray); line-height: 1.45; flex: 1; margin-bottom: 12px; }
+    .prod-bottom { display: flex; align-items: center; justify-content: space-between; }
+    .prod-price { font-size: 1.15rem; font-weight: 800; color: var(--blue-dk); }
+    .prod-old   { font-size: .75rem; color: #aaa; text-decoration: line-through; display: block; }
+    .tag-badge  {
+      display: inline-block; font-size: .65rem; font-weight: 800; text-transform: uppercase;
+      border-radius: 5px; padding: 2px 7px; margin-bottom: 6px;
+    }
+    .tag-oferta { background: #fef3c7; color: #92400e; }
+    .tag-nuevo  { background: #d1fae5; color: #065f46; }
+    .tag-top    { background: #ede9fe; color: #5b21b6; }
+    .tag-exc    { background: #fce7f3; color: #9d174d; }
+
+    /* Controles de cantidad en la tarjeta */
+    .qty-control {
+      display: flex; align-items: center; gap: 0;
+      border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden;
+    }
+    .qty-control button {
+      width: 32px; height: 32px; border: none; background: var(--bg);
+      color: var(--ink); font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .qty-control button:hover { background: var(--blue-lt); color: var(--blue); }
+    .qty-display { width: 32px; text-align: center; font-weight: 700; font-size: .9rem; }
+    .btn-add-cart {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--blue); color: #fff; border: none; border-radius: 8px;
+      padding: 7px 14px; font-size: .82rem; font-weight: 700; cursor: pointer;
+      transition: .15s;
+    }
+    .btn-add-cart:hover { background: var(--blue-dk); }
+    .btn-add-cart.added { background: var(--green); }
+    .btn-add-cart svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5; }
+
+    /* ── DRAWER DEL CARRITO ── */
+    #drawer-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300;
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    #drawer-overlay.open { opacity: 1; pointer-events: all; }
+    #cart-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 380px; max-width: 96vw;
+      background: var(--card); z-index: 400;
+      display: flex; flex-direction: column;
+      transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1);
+      box-shadow: -8px 0 40px rgba(0,0,0,.18);
+    }
+    #cart-drawer.open { transform: translateX(0); }
+    .drawer-head {
+      background: var(--blue-dk); color: #fff;
+      padding: 18px 20px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .drawer-head h2 { font-size: 1.05rem; font-weight: 700; }
+    .drawer-close {
+      background: rgba(255,255,255,.15); border: none; color: #fff;
+      width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+      font-size: 1rem; display: flex; align-items: center; justify-content: center;
+    }
+    .drawer-close:hover { background: rgba(255,255,255,.3); }
+    .drawer-items { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .drawer-empty { text-align: center; color: var(--gray); padding: 60px 20px; font-size: .95rem; }
+    .drawer-empty .big { font-size: 3rem; }
+
+    .cart-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      background: var(--bg); border-radius: 10px; padding: 12px;
+      border: 1px solid var(--border);
+    }
+    .ci-icon { font-size: 2rem; min-width: 40px; text-align: center; }
+    .ci-body  { flex: 1; }
+    .ci-name  { font-size: .86rem; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+    .ci-price-unit { font-size: .75rem; color: var(--gray); }
+    .ci-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .ci-subtotal  { font-size: .9rem; font-weight: 800; color: var(--blue-dk); }
+    .ci-remove { background: none; border: none; color: #ef4444; cursor: pointer; font-size: .75rem; font-weight: 600; }
+    .ci-remove:hover { text-decoration: underline; }
+
+    .drawer-footer { border-top: 2px solid var(--border); padding: 16px 20px; }
+    .totals-row { display: flex; justify-content: space-between; font-size: .9rem; margin-bottom: 6px; }
+    .totals-row.total { font-weight: 800; font-size: 1.1rem; color: var(--blue-dk); margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+    .btn-checkout {
+      width: 100%; margin-top: 14px; background: var(--blue); color: #fff;
+      border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 800;
+      cursor: pointer; transition: .15s; letter-spacing: .3px;
+    }
+    .btn-checkout:hover { background: var(--blue-dk); }
+    .btn-checkout:disabled { background: var(--gray); cursor: not-allowed; }
+
+    /* Toast de "agregado" */
+    #toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--green); color: #fff; border-radius: 10px;
+      padding: 12px 22px; font-weight: 700; font-size: .9rem;
+      opacity: 0; pointer-events: none; z-index: 9999;
+      transition: opacity .2s, transform .2s;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Tienda <em>Thiago</em></div>
+  <button class="cart-btn" onclick="abrirCarrito()">
+    🛒 Ver carrito
+    <span class="cart-count" id="cart-count">0</span>
+  </button>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Tecnología de calidad, directo a ti</h1>
+  <p>Laptops, smartphones, audio y wearables – con pago seguro vía Payphone</p>
+  <div class="hero-badges">
+    <span class="hero-badge">🔒 Pago seguro Payphone</span>
+    <span class="hero-badge">💳 Visa · MC · Diners · Discover</span>
+    <span class="hero-badge">📱 Saldo Payphone</span>
+    <span class="hero-badge">🇪🇨 Entrega en Ecuador</span>
+  </div>
+</div>
+
+<!-- FILTROS -->
+<div class="filters">
+  <button class="filter-btn active" onclick="filtrar('todos', this)">Todos</button>
+  <button class="filter-btn" onclick="filtrar('laptop', this)">💻 Laptops</button>
+  <button class="filter-btn" onclick="filtrar('smartphone', this)">📱 Smartphones</button>
+  <button class="filter-btn" onclick="filtrar('audio', this)">🎧 Audio</button>
+  <button class="filter-btn" onclick="filtrar('wearable', this)">⌚ Wearables</button>
+  <button class="filter-btn" onclick="filtrar('accesorio', this)">🖱️ Accesorios</button>
+</div>
+
+<!-- PRODUCTOS -->
+<div class="products-grid" id="products-grid"></div>
+
+<!-- OVERLAY -->
+<div id="drawer-overlay" onclick="cerrarCarrito()"></div>
+
+<!-- DRAWER CARRITO -->
+<div id="cart-drawer">
+  <div class="drawer-head">
+    <h2>🛒 Tu carrito</h2>
+    <button class="drawer-close" onclick="cerrarCarrito()">✕</button>
+  </div>
+  <div class="drawer-items" id="drawer-items">
+    <div class="drawer-empty"><div class="big">🛒</div><p>Tu carrito está vacío.<br>¡Agrega productos para comenzar!</p></div>
+  </div>
+  <div class="drawer-footer">
+    <div class="totals-row"><span>Subtotal sin IVA</span><span id="t-sub">$0.00</span></div>
+    <div class="totals-row"><span>IVA (15%)</span><span id="t-iva">$0.00</span></div>
+    <div class="totals-row total"><span>Total</span><span id="t-total">$0.00</span></div>
+    <button class="btn-checkout" id="btn-checkout" disabled onclick="irCheckout()">
+      Proceder al pago →
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast">✓ Producto agregado al carrito</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// CATÁLOGO DE PRODUCTOS
+// ════════════════════════════════════════════════════════════════════
+const PRODUCTOS = [
+  { id:'P001', icon:'💻', cat:'laptop',     tag:'oferta',  nombre:'Laptop Gaming Pro 15"',
+    desc:'Intel i7 12ª gen, 16GB RAM, RTX 4060, SSD 512GB NVMe. Ideal para gaming y trabajo creativo.',
+    precio:1150.00, precioOld:1300.00 },
+  { id:'P002', icon:'💻', cat:'laptop',     tag:'nuevo',   nombre:'UltraBook Slim 13"',
+    desc:'Intel Core i5, 8GB RAM, SSD 256GB, batería 18h, 1.1 kg. La más ligera del mercado.',
+    precio:780.00 },
+  { id:'P003', icon:'📱', cat:'smartphone', tag:'nuevo',   nombre:'Smartphone X Pro Max',
+    desc:'6.7" AMOLED 120Hz, 256GB, cámara 200MP triple, 5G, Android 14.',
+    precio:580.00 },
+  { id:'P004', icon:'📱', cat:'smartphone', tag:'top',     nombre:'Moto Edge 40 Neo',
+    desc:'6.5" pOLED, 256GB, NFC, carga 68W, IP68. Gran relación precio-calidad.',
+    precio:320.00, precioOld:380.00 },
+  { id:'P005', icon:'🎧', cat:'audio',      tag:'top',     nombre:'Auriculares BT Pro NC',
+    desc:'Cancelación activa de ruido (ANC), 40h batería, Hi-Res Audio, plegables, Bluetooth 5.3.',
+    precio:120.00, precioOld:145.00 },
+  { id:'P006', icon:'🎧', cat:'audio',      tag:'oferta',  nombre:'Parlante Portátil 360°',
+    desc:'Sonido 360°, 30W potencia, IP67, 24h batería, TWS para enlazar dos unidades.',
+    precio:89.00, precioOld:110.00 },
+  { id:'P007', icon:'⌚', cat:'wearable',   tag:'exc',     nombre:'Smartwatch Ultra Series 9',
+    desc:'GPS integrado, SpO2, ECG, 18 días batería, IP68, 47 modos deportivos.',
+    precio:230.00 },
+  { id:'P008', icon:'⌚', cat:'wearable',   tag:'nuevo',   nombre:'Fitness Band Pro 7',
+    desc:'Pantalla AMOLED, GPS, monitor de sueño, SpO2, 14 días batería, ultra liviano.',
+    precio:65.00 },
+  { id:'P009', icon:'🖱️', cat:'accesorio',  tag:'top',     nombre:'Mouse Ergonómico Inalámbrico',
+    desc:'Diseño ergonómico, DPI ajustable 400–4000, receptor USB nano, 18 meses batería.',
+    precio:35.00 },
+  { id:'P010', icon:'⌨️', cat:'accesorio',  tag:'oferta',  nombre:'Teclado Mecánico TKL RGB',
+    desc:'Switches Cherry MX Red, retroiluminación RGB por tecla, Anti-Ghosting, USB-C.',
+    precio:95.00, precioOld:120.00 },
+  { id:'P011', icon:'🖥️', cat:'accesorio',  tag:'exc',     nombre:'Monitor 4K 27" IPS',
+    desc:'3840×2160, 144Hz, sRGB 99%, HDR400, AMD FreeSync Premium, 2×HDMI 2.1 + DP 1.4.',
+    precio:420.00 },
+  { id:'P012', icon:'📸', cat:'accesorio',  tag:'nuevo',   nombre:'Webcam 4K AutoFocus',
+    desc:'4K 30fps / 1080p 60fps, HDR, micrófono estéreo con cancelación de ruido, plug & play.',
+    precio:78.00 },
+];
+
+// ════════════════════════════════════════════════════════════════════
+// ESTADO DEL CARRITO
+// ════════════════════════════════════════════════════════════════════
+let carrito = {}; // { productoId: cantidad }
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER DEL CATÁLOGO
+// ════════════════════════════════════════════════════════════════════
+function renderCatalogo() {
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = PRODUCTOS.map(p => {
+    const tagLabel = { oferta:'OFERTA', nuevo:'NUEVO', top:'TOP VENTAS', exc:'EXCLUSIVO' }[p.tag] || '';
+    const tagCls   = { oferta:'tag-oferta', nuevo:'tag-nuevo', top:'tag-top', exc:'tag-exc' }[p.tag] || '';
+    const oldPrice = p.precioOld ? `<span class="prod-old">$${p.precioOld.toFixed(2)}</span>` : '';
+    return `
+    <div class="product-card" data-cat="${p.cat}" id="card-${p.id}">
+      <div class="prod-img">${p.icon}</div>
+      <div class="prod-body">
+        <div class="prod-cat">${p.cat.toUpperCase()}</div>
+        ${tagLabel ? `<span class="tag-badge ${tagCls}">${tagLabel}</span>` : ''}
+        <div class="prod-name">${p.nombre}</div>
+        <div class="prod-desc">${p.desc}</div>
+        <div class="prod-bottom">
+          <div>
+            ${oldPrice}
+            <span class="prod-price">$${p.precio.toFixed(2)}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+            <div class="qty-control">
+              <button onclick="cambiarQtyCard('${p.id}',-1)">−</button>
+              <span class="qty-display" id="qty-${p.id}">1</span>
+              <button onclick="cambiarQtyCard('${p.id}',1)">+</button>
+            </div>
+            <button class="btn-add-cart" id="add-${p.id}" onclick="agregarAlCarrito('${p.id}')">
+              <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+              Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Cantidades en la tarjeta (antes de agregar)
+const cardQty = {}; // { id: qty }
+PRODUCTOS.forEach(p => cardQty[p.id] = 1);
+
+function cambiarQtyCard(id, delta) {
+  cardQty[id] = Math.max(1, (cardQty[id] || 1) + delta);
+  document.getElementById('qty-' + id).textContent = cardQty[id];
+}
+
+function agregarAlCarrito(id) {
+  const qty = cardQty[id] || 1;
+  carrito[id] = (carrito[id] || 0) + qty;
+  actualizarUI();
+
+  // Feedback visual en el botón
+  const btn = document.getElementById('add-' + id);
+  btn.classList.add('added');
+  btn.textContent = '✓ Agregado';
+  setTimeout(() => {
+    btn.classList.remove('added');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg> Agregar`;
+  }, 1500);
+
+  mostrarToast('✓ ' + PRODUCTOS.find(p => p.id === id).nombre + ' agregado');
+}
+
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ACTUALIZAR UI (badge, drawer)
+// ════════════════════════════════════════════════════════════════════
+function actualizarUI() {
+  // Badge del header
+  const total = Object.values(carrito).reduce((s, q) => s + q, 0);
+  const badge = document.getElementById('cart-count');
+  badge.textContent = total;
+  badge.classList.toggle('show', total > 0);
+  document.getElementById('btn-checkout').disabled = total === 0;
+
+  // Drawer
+  renderDrawer();
+}
+
+function renderDrawer() {
+  const ids = Object.keys(carrito).filter(id => carrito[id] > 0);
+  const container = document.getElementById('drawer-items');
+
+  if (ids.length === 0) {
+    container.innerHTML = `<div class="drawer-empty"><div class="big">🛒</div><p>Tu carrito está vacío.<br>¡Agrega productos para comenzar!</p></div>`;
+    setTotals(0, 0, 0);
+    return;
+  }
+
+  let subtotal = 0;
+  container.innerHTML = ids.map(id => {
+    const p   = PRODUCTOS.find(x => x.id === id);
+    const qty = carrito[id];
+    const sub = p.precio * qty;
+    subtotal += sub;
+    return `
+    <div class="cart-item" id="ci-${id}">
+      <div class="ci-icon">${p.icon}</div>
+      <div class="ci-body">
+        <div class="ci-name">${p.nombre}</div>
+        <div class="ci-price-unit">$${p.precio.toFixed(2)} c/u</div>
+        <div class="ci-controls">
+          <div class="qty-control">
+            <button onclick="cambiarQtyCarrito('${id}',-1)">−</button>
+            <span class="qty-display">${qty}</span>
+            <button onclick="cambiarQtyCarrito('${id}',1)">+</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="ci-subtotal">$${sub.toFixed(2)}</span>
+            <button class="ci-remove" onclick="eliminarItem('${id}')">✕ Quitar</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const iva   = subtotal * 0.15 / 1.15; // Asumiendo precio incluye IVA
+  // Realmente: precios son SIN IVA, el IVA se suma
+  const base  = subtotal;
+  const ivaAmt = base * 0.15;
+  const totalAmt = base + ivaAmt;
+  setTotals(base, ivaAmt, totalAmt);
+}
+
+function setTotals(base, iva, total) {
+  document.getElementById('t-sub').textContent   = '$' + base.toFixed(2);
+  document.getElementById('t-iva').textContent   = '$' + iva.toFixed(2);
+  document.getElementById('t-total').textContent = '$' + total.toFixed(2);
+}
+
+function cambiarQtyCarrito(id, delta) {
+  carrito[id] = Math.max(0, (carrito[id] || 0) + delta);
+  if (carrito[id] === 0) delete carrito[id];
+  actualizarUI();
+}
+
+function eliminarItem(id) {
+  delete carrito[id];
+  actualizarUI();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// DRAWER OPEN / CLOSE
+// ════════════════════════════════════════════════════════════════════
+function abrirCarrito() {
+  document.getElementById('cart-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function cerrarCarrito() {
+  document.getElementById('cart-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ════════════════════════════════════════════════════════════════════
+// FILTROS
+// ════════════════════════════════════════════════════════════════════
+function filtrar(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.product-card').forEach(card => {
+    card.classList.toggle('hidden', cat !== 'todos' && card.dataset.cat !== cat);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// IR A CHECKOUT
+// ════════════════════════════════════════════════════════════════════
+function irCheckout() {
+  // Guardar carrito en sessionStorage para que checkout.html lo lea
+  const ids = Object.keys(carrito).filter(id => carrito[id] > 0);
+  const items = ids.map(id => {
+    const p = PRODUCTOS.find(x => x.id === id);
+    return { id: p.id, icon: p.icon, nombre: p.nombre, precio: p.precio, qty: carrito[id] };
+  });
+  sessionStorage.setItem('carrito', JSON.stringify(items));
+  window.location.href = 'checkout.html';
+}
+
+// ════════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════════
+renderCatalogo();
+</script>
+</body>
+</html>

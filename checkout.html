@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout – Tienda Thiago</title>
+  <link rel="stylesheet" href="https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.css">
+  <script type="module" src="https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.js"></script>
+  <style>
+    :root {
+      --ink:     #0d1b2a;
+      --blue:    #1a56db;
+      --blue-dk: #0d3b8c;
+      --blue-lt: #e8f0fe;
+      --accent:  #f59e0b;
+      --green:   #059669;
+      --gray:    #6b7280;
+      --bg:      #f8fafc;
+      --card:    #ffffff;
+      --border:  #e2e8f0;
+      --radius:  14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+
+    header {
+      background: var(--blue-dk); color: #fff;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; height: 60px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    }
+    .logo { font-size: 1.2rem; font-weight: 800; letter-spacing: -.5px; }
+    .logo em { color: var(--accent); font-style: normal; }
+    .back-btn {
+      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+      color: #fff; border-radius: 8px; padding: 7px 14px;
+      font-size: .84rem; cursor: pointer; text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .back-btn:hover { background: rgba(255,255,255,.25); }
+
+    .steps {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; padding: 20px 28px; background: #fff; border-bottom: 1.5px solid var(--border);
+    }
+    .step { display: flex; align-items: center; gap: 8px; font-size: .82rem; }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: .75rem;
+    }
+    .step.done .step-num   { background: var(--green); color: #fff; }
+    .step.active .step-num { background: var(--blue);  color: #fff; }
+    .step.next .step-num   { background: var(--border); color: var(--gray); }
+    .step.active .step-label { font-weight: 700; color: var(--blue); }
+    .step.done  .step-label  { color: var(--green); }
+    .step.next  .step-label  { color: var(--gray); }
+    .step-line { width: 50px; height: 2px; background: var(--border); margin: 0 8px; }
+    .step-line.done { background: var(--green); }
+
+    .layout {
+      max-width: 1000px; margin: 30px auto; padding: 0 20px 60px;
+      display: grid; grid-template-columns: 1fr 400px; gap: 24px;
+    }
+    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card); border-radius: var(--radius);
+      border: 1.5px solid var(--border); overflow: hidden;
+    }
+    .card-head {
+      background: var(--blue-dk); color: #fff;
+      padding: 14px 20px; font-weight: 700; font-size: .95rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-body { padding: 20px; }
+
+    .order-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .order-item:last-child { border-bottom: none; }
+    .oi-icon   { font-size: 1.8rem; min-width: 40px; text-align: center; }
+    .oi-info   { flex: 1; }
+    .oi-name   { font-size: .88rem; font-weight: 700; }
+    .oi-detail { font-size: .75rem; color: var(--gray); margin-top: 2px; }
+    .oi-sub    { font-size: .95rem; font-weight: 800; color: var(--blue-dk); white-space: nowrap; }
+
+    .totals { margin-top: 4px; }
+    .tr { display: flex; justify-content: space-between; font-size: .88rem; padding: 6px 0; color: var(--gray); }
+    .tr.grand { font-size: 1.1rem; font-weight: 800; color: var(--ink);
+                border-top: 2px solid var(--blue-lt); margin-top: 8px; padding-top: 12px; }
+    .tr.grand span:last-child { color: var(--blue-dk); }
+
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: .8rem; font-weight: 700; color: var(--gray);
+            text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+    input {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 9px 12px; font-size: .9rem; color: var(--ink);
+      transition: border-color .15s; outline: none;
+    }
+    input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
+    input:invalid:not(:placeholder-shown) { border-color: #dc2626; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .hint-note {
+      padding: 0 20px 16px; font-size: .78rem; color: var(--gray);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .methods-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .method-chip {
+      border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 5px 12px; font-size: .78rem; color: var(--gray); font-weight: 600;
+    }
+
+    #pp-button { min-height: 60px; }
+    .pp-warning {
+      color: #dc2626; font-size: .85rem; text-align: center;
+      padding: 20px 10px; background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: 8px;
+    }
+
+    .security-note {
+      display: flex; align-items: center; gap: 8px;
+      background: #f0fdf4; border: 1px solid #bbf7d0;
+      border-radius: 8px; padding: 10px 14px; margin-top: 14px;
+      font-size: .78rem; color: #166534;
+    }
+
+    .empty-alert {
+      text-align: center; padding: 60px 20px; color: var(--gray);
+    }
+    .empty-alert .big { font-size: 3.5rem; }
+    .empty-alert h2   { margin-top: 16px; font-size: 1.2rem; color: var(--ink); }
+    .btn-go-shop {
+      display: inline-block; margin-top: 20px; background: var(--blue); color: #fff;
+      border-radius: 10px; padding: 12px 28px; font-weight: 700; text-decoration: none;
+      font-size: .95rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Tienda <em>Thiago</em></div>
+  <a href="index.html" class="back-btn">← Seguir comprando</a>
+</header>
+
+<div class="steps">
+  <div class="step done">
+    <div class="step-num">✓</div>
+    <span class="step-label">Productos</span>
+  </div>
+  <div class="step-line done"></div>
+  <div class="step active">
+    <div class="step-num">2</div>
+    <span class="step-label">Pago</span>
+  </div>
+  <div class="step-line"></div>
+  <div class="step next">
+    <div class="step-num">3</div>
+    <span class="step-label">Factura</span>
+  </div>
+</div>
+
+<div id="main-content"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// CONFIGURACIÓN PAYPHONE
+// ════════════════════════════════════════════════════════════════════
+const PAYPHONE_TOKEN   = 'w5LNbRnVPAktNvYoO1mI-U1rD6E29IqoNGW530pDISGxDRkLDUc_ymKrQAQEaerReq8MFhWFA2UzoZZIvrG8OaaFAlfXrQrTMVwI6Ba6Q3x1j4NQxDnGMCobrL47Ao4zHjm-O4PKAXDoNfd2IiylD2UkhdmVOaAVAsayRyFdYobpWsQeAkAw-86CI8kInnPfLRvcdhKZxKyL24-kHHwyxVYyWXmUQkPt4i7QrFNuuXKU32spYqZSE4YpPFIGi_wZdSuI74FQ34obN6oDAIB4hKyhykA65EuycYXBeOhezIv3bYnxE1-bloGB828bSnbPcJQ4r6-0JTs7CXPZhZBIGawqlq0';
+const PAYPHONE_STOREID = '665d2a80-057f-4c4c-901b-06f4c2838834';
+// Nota: la URL a la que Payphone redirige tras el pago NO se configura aquí.
+// Se configura en Payphone Developer > tu app > "URL de Respuesta", y debe
+// apuntar exactamente a tu dominio + /factura.html
+
+// ════════════════════════════════════════════════════════════════════
+// LEER CARRITO
+// ════════════════════════════════════════════════════════════════════
+const items = JSON.parse(sessionStorage.getItem('carrito') || '[]');
+
+if (items.length === 0) {
+  document.getElementById('main-content').innerHTML = `
+    <div class="empty-alert">
+      <div class="big">🛒</div>
+      <h2>Tu carrito está vacío</h2>
+      <p>Regresa a la tienda y agrega productos para continuar.</p>
+      <a href="index.html" class="btn-go-shop">Ir a la tienda</a>
+    </div>`;
+} else {
+  renderCheckout();
+}
+
+function renderCheckout() {
+  const subtotal = items.reduce((s, it) => s + it.precio * it.qty, 0);
+  const iva      = subtotal * 0.15;
+  const total    = subtotal + iva;
+
+  document.getElementById('main-content').innerHTML = `
+  <div class="layout">
+    <!-- COLUMNA IZQUIERDA: resumen + datos de entrega -->
+    <div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-head">📋 Resumen de tu pedido</div>
+        <div class="card-body">
+          ${items.map(it => `
+            <div class="order-item">
+              <div class="oi-icon">${it.icon}</div>
+              <div class="oi-info">
+                <div class="oi-name">${it.nombre}</div>
+                <div class="oi-detail">$${it.precio.toFixed(2)} × ${it.qty} unid.</div>
+              </div>
+              <div class="oi-sub">$${(it.precio * it.qty).toFixed(2)}</div>
+            </div>`).join('')}
+          <div class="totals">
+            <div class="tr"><span>Subtotal (sin IVA)</span><span>$${subtotal.toFixed(2)}</span></div>
+            <div class="tr"><span>IVA 15%</span><span>$${iva.toFixed(2)}</span></div>
+            <div class="tr grand"><span>Total a pagar</span><span>$${total.toFixed(2)}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos de entrega -->
+      <div class="card">
+        <div class="card-head">📦 Datos de entrega</div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombres</label>
+              <input type="text" id="f-nombre" placeholder="Ej: María" required />
+            </div>
+            <div class="form-group">
+              <label>Apellidos</label>
+              <input type="text" id="f-apellido" placeholder="Ej: García" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Dirección de entrega</label>
+            <input type="text" id="f-direccion" placeholder="Av. 4 de Noviembre, Manta..." required />
+          </div>
+          <div class="form-group">
+            <label>Referencia (opcional)</label>
+            <input type="text" id="f-referencia" placeholder="Ej: casa azul, junto a la farmacia" />
+          </div>
+          <button type="button" class="btn-go-shop" style="width:100%;text-align:center;border:none;cursor:pointer"
+                  onclick="validarYMostrarPago()">
+            Continuar al pago →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: pago -->
+    <div>
+      <div class="card">
+        <div class="card-head">💳 Método de pago</div>
+        <div class="card-body">
+          <div class="methods-list">
+            <span class="method-chip">💳 Visa</span>
+            <span class="method-chip">💳 MasterCard</span>
+            <span class="method-chip">💳 Diners</span>
+            <span class="method-chip">💳 Discover</span>
+            <span class="method-chip">📱 Payphone</span>
+          </div>
+
+          <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:14px;margin-bottom:16px;">
+            <div style="font-size:.8rem;font-weight:700;color:#1d4ed8;margin-bottom:4px;">💰 Total a cobrar</div>
+            <div style="font-size:1.6rem;font-weight:900;color:#0d3b8c;">$${total.toFixed(2)} USD</div>
+            <div style="font-size:.75rem;color:#6b7280;margin-top:2px;">${items.reduce((s,i)=>s+i.qty,0)} producto(s) · IVA incluido</div>
+          </div>
+
+          <div id="pp-button">
+            <p style="color:var(--gray);font-size:.85rem;text-align:center;padding:20px 0">
+              👈 Completa tus datos de entrega y pulsa "Continuar al pago".
+            </p>
+          </div>
+
+          <div class="security-note">
+            🔒 Pago procesado de forma segura por <strong>Payphone</strong>.
+            Tu correo, teléfono y cédula te los pedirá el propio formulario de Payphone.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  sessionStorage.setItem('totales', JSON.stringify({ subtotal, iva, total }));
+}
+
+// ════════════════════════════════════════════════════════════════════
+// VALIDAR DATOS DE ENTREGA Y RECIÉN AHÍ MOSTRAR LA CAJITA DE PAGOS
+// ════════════════════════════════════════════════════════════════════
+function validarYMostrarPago() {
+  const nombre     = document.getElementById('f-nombre').value.trim();
+  const apellido   = document.getElementById('f-apellido').value.trim();
+  const direccion  = document.getElementById('f-direccion').value.trim();
+  const referencia = document.getElementById('f-referencia').value.trim();
+
+  if (!nombre || !apellido || !direccion) {
+    document.getElementById('pp-button').innerHTML =
+      '<p class="pp-warning">⚠️ Completa Nombres, Apellidos y Dirección de entrega para continuar con el pago.</p>';
+    return;
+  }
+
+  sessionStorage.setItem('datosEntrega', JSON.stringify({ nombre, apellido, direccion, referencia }));
+  iniciarCajita({ nombre, apellido, direccion, referencia });
+}
+
+/**
+ * iniciarCajita()
+ * Instancia PPaymentButtonBox con los parámetros del pedido.
+ * Los montos se expresan en centavos (USD × 100).
+ */
+function iniciarCajita(entrega) {
+  const subtotal = items.reduce((s, it) => s + it.precio * it.qty, 0);
+  const iva      = subtotal * 0.15;
+  const total    = subtotal + iva;
+
+  const totalCents    = Math.round(total * 100);
+  const subtotalCents = Math.round(subtotal * 100);
+  const ivaCents      = Math.round(iva * 100);
+
+  const clientTransactionId = 'TS-' + Date.now();
+  sessionStorage.setItem('clientTransactionId', clientTransactionId);
+
+  document.getElementById('pp-button').innerHTML = '';
+
+  new PPaymentButtonBox({
+    token:               PAYPHONE_TOKEN,
+    clientTransactionId: clientTransactionId,
+    amount:              totalCents,       // Total (subtotal + IVA)
+    amountWithoutTax:    subtotalCents,    // Base imponible sin IVA
+    tax:                 ivaCents,         // IVA 15%
+    currency:            'USD',
+    storeId:             PAYPHONE_STOREID,
+    reference:           'Tienda Thiago – Pedido ' + clientTransactionId,
+    lang:                'es',
+    timeZone:            -5,
+    lat:                 '-0.9537',
+    lng:                 '-80.7119',
+    defaultMethod:       'card',
+    // email / phoneNumber / documentId no se pasan: Payphone los pide en su
+    // propio formulario. optionalParameter guarda la dirección de entrega.
+    optionalParameter:   entrega.direccion + (entrega.referencia ? ' - ' + entrega.referencia : ''),
+  }).render('pp-button');
+}
+</script>
+</body>
+</html>
