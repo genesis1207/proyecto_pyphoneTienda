@@ -24,10 +24,10 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Desplegando aplicación...'
-
                 sh '''
-                    cp -r * /deploy/
+                    echo "Iniciando despliegue..."
+                    cp -rf ./* /deploy/
+                    echo "Despliegue completado."
                 '''
             }
         }
@@ -39,7 +39,7 @@ pipeline {
         }
 
         failure {
-            echo 'Hubo un error durante la ejecución.'
+            echo 'Hubo un error en el Pipeline.'
         }
 
         always {
